@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	err := sys.Overload(".env.cloud", ".env.local")
+	err := sys.Overload(".env.local", ".env.cloud")
 
 	logger.Init()
 	db.Init()
