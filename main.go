@@ -28,8 +28,9 @@ func main() {
 	modelState := state.NewModelState()
 	deviceState := state.NewDeviceState()
 	tuneState := state.NewTuneState()
+	integralState := state.NewTrackingIntegralState()
 
-	controlSamplingService := esp.NewControlSamplingService(modelState, deviceState, tuneState)
+	controlSamplingService := esp.NewControlSamplingService(modelState, deviceState, tuneState, integralState)
 	controlHandlerService := web.NewControlHandlerService(deviceState, modelState, tuneState)
 
 	http.HandleFunc("/api/esp", util.WithCors(esp.ControlSampler(controlSamplingService)))

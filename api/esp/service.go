@@ -4,29 +4,33 @@ import (
 	"Solflora/dao"
 	"Solflora/logger"
 	"Solflora/state"
+	"Solflora/util"
 )
 
 type ControlSamplingService struct {
-	modelState  *state.ModelState
-	deviceState *state.DeviceState
-	tuneState   *state.TuneState
+	modelState    *state.ModelState
+	deviceState   *state.DeviceState
+	tuneState     *state.TuneState
+	integralState *state.TrackingIntegralState
 }
 
 func NewControlSamplingService(
 	modelState *state.ModelState,
 	deviceState *state.DeviceState,
-	tuneState *state.TuneState) *ControlSamplingService {
+	tuneState *state.TuneState,
+	integralState *state.TrackingIntegralState) *ControlSamplingService {
 	return &ControlSamplingService{
-		modelState:  modelState,
-		deviceState: deviceState,
-		tuneState:   tuneState}
+		modelState:    modelState,
+		deviceState:   deviceState,
+		tuneState:     tuneState,
+		integralState: integralState}
 }
 
 func (s *ControlSamplingService) HandleControlSampling(req RequestBody) (ResponseBody, error) {
 	var log = logger.Logger()
 	log.Infof("[START] api.esp.HandleControlSampling")
 
-	var newTemperatureEntity = buildTemperatureEntity(req)
+	var newTemperatureEntity = buildTemperatureEntity(req, s.integralState, s.tuneState)
 	var newHumidityEntity = buildHumidityEntity(req)
 	var newMoistureEntity = buildMoistureEntity(req)
 
@@ -68,11 +72,11 @@ func (s *ControlSamplingService) HandleControlSampling(req RequestBody) (Respons
 	return responseBody, nil
 }
 
-func buildTemperatureEntity(req RequestBody) *dao.TemperatureEntity {
+func buildTemperatureEntity(req RequestBody, integralState *state.TrackingIntegralState, tuneState *state.TuneState) *dao.TemperatureEntity {
 
 	return &dao.TemperatureEntity{
 		PresentValue:     req.TemperaturePV,
-		ControllerOutput: req.TemperatureCO,
+		ControllerOutput: util.CalculateCO(req.TemperatureSP, req.TemperaturePV, integralState, tuneState),
 		SetPoint:         req.TemperatureSP,
 	}
 }
