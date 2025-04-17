@@ -10,7 +10,7 @@ func Mock_db_population_from_state() {
 	var tuneState = state.NewTuneState()
 	var modelState = state.NewModelState()
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 10000; i++ {
 		mock_populate_states(tuneState, modelState)
 
 		var tempEntity dao.TemperatureEntity

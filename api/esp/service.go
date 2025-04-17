@@ -69,6 +69,7 @@ func (s *ControlSamplingService) HandleControlSampling(req RequestBody) (Respons
 }
 
 func buildTemperatureEntity(req RequestBody) *dao.TemperatureEntity {
+
 	return &dao.TemperatureEntity{
 		PresentValue:     req.TemperaturePV,
 		ControllerOutput: req.TemperatureCO,

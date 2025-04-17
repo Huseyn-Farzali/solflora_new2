@@ -35,8 +35,21 @@ func main() {
 	http.HandleFunc("/api/pump-water", web.WaterPumpControl(controlHandlerService))
 	http.HandleFunc("/api/fan-control", web.AirFanControl(controlHandlerService))
 	http.HandleFunc("/api/temp-control-sp", web.TemperatureSetPointControl(controlHandlerService))
-	//TODO: should be fixed: http.HandleFunc("/api/temp-sp", web.TemperatureSetPointControl(controlHandlerService))
-	http.HandleFunc("/api/temp-coef", web.ReturnTemperatureControlTuneProfile(controlHandlerService))
+	http.HandleFunc("/api/temp-sp", web.ReturnTemperatureSetPoint(controlHandlerService))
+	http.HandleFunc("/api/temp-coef", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			web.ReturnTemperatureControlTuneProfile(controlHandlerService)(w, r)
+		case http.MethodPost:
+			web.SetTemperatureControlTuneProfile(controlHandlerService)(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	http.HandleFunc("/api/temp-data", web.ReturnTemperatureChartData(controlHandlerService))
+	http.HandleFunc("/api/humidity-data", web.ReturnHumidityChartData(controlHandlerService))
+	http.HandleFunc("/api/moisture-data", web.ReturnMoistureChartData(controlHandlerService))
 
 	log.Fatalf("[FATAL] main() | web server shut down | potential-err: %s\n",
 		http.ListenAndServe(":8080", nil).Error())
