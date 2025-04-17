@@ -6,6 +6,7 @@ import (
 	"Solflora/db"
 	"Solflora/logger"
 	"Solflora/state"
+	"Solflora/util"
 	sys "github.com/joho/godotenv"
 	"net/http"
 )
@@ -31,12 +32,12 @@ func main() {
 	controlSamplingService := esp.NewControlSamplingService(modelState, deviceState, tuneState)
 	controlHandlerService := web.NewControlHandlerService(deviceState, modelState, tuneState)
 
-	http.HandleFunc("/api/esp", esp.ControlSampler(controlSamplingService))
-	http.HandleFunc("/api/pump-water", web.WaterPumpControl(controlHandlerService))
-	http.HandleFunc("/api/fan-control", web.AirFanControl(controlHandlerService))
-	http.HandleFunc("/api/temp-control-sp", web.TemperatureSetPointControl(controlHandlerService))
-	http.HandleFunc("/api/temp-sp", web.ReturnTemperatureSetPoint(controlHandlerService))
-	http.HandleFunc("/api/temp-coef", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/esp", util.WithCors(esp.ControlSampler(controlSamplingService)))
+	http.HandleFunc("/api/pump-water", util.WithCors(web.WaterPumpControl(controlHandlerService)))
+	http.HandleFunc("/api/fan-control", util.WithCors(web.AirFanControl(controlHandlerService)))
+	http.HandleFunc("/api/temp-control-sp", util.WithCors(web.TemperatureSetPointControl(controlHandlerService)))
+	http.HandleFunc("/api/temp-sp", util.WithCors(web.ReturnTemperatureSetPoint(controlHandlerService)))
+	http.HandleFunc("/api/temp-coef", util.WithCors(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			web.ReturnTemperatureControlTuneProfile(controlHandlerService)(w, r)
@@ -45,11 +46,11 @@ func main() {
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	})
+	}))
 
-	http.HandleFunc("/api/temp-data", web.ReturnTemperatureChartData(controlHandlerService))
-	http.HandleFunc("/api/humidity-data", web.ReturnHumidityChartData(controlHandlerService))
-	http.HandleFunc("/api/moisture-data", web.ReturnMoistureChartData(controlHandlerService))
+	http.HandleFunc("/api/temp-data", util.WithCors(web.ReturnTemperatureChartData(controlHandlerService)))
+	http.HandleFunc("/api/humidity-data", util.WithCors(web.ReturnHumidityChartData(controlHandlerService)))
+	http.HandleFunc("/api/moisture-data", util.WithCors(web.ReturnMoistureChartData(controlHandlerService)))
 
 	log.Fatalf("[FATAL] main() | web server shut down | potential-err: %s\n",
 		http.ListenAndServe(":8080", nil).Error())
